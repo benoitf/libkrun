@@ -23,6 +23,8 @@ mod kvmgicv2;
 mod kvmgicv3;
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 mod kvmioapic;
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+mod whpioapic;
 #[cfg(target_arch = "aarch64")]
 mod rtc_pl031;
 #[cfg(target_os = "macos")]
@@ -67,6 +69,8 @@ pub use self::kvmgicv2::KvmGicV2;
 pub use self::kvmgicv3::KvmGicV3;
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub use self::kvmioapic::KvmIoapic;
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+pub use self::whpioapic::WhpIoapic;
 #[cfg(target_arch = "aarch64")]
 pub use self::rtc_pl031::RTC;
 pub use self::serial::Serial;
@@ -76,10 +80,38 @@ pub use self::vcpu::VcpuList;
 // Cannot use multiple types as bounds for a trait object, so we define our own trait
 // which is a composition of the desired bounds. In this case, io::Read and AsRawFd.
 // Run `rustc --explain E0225` for more details.
-/// Trait that composes the `std::io::Read` and `std::os::unix::io::AsRawFd` traits.
-pub trait ReadableFd: std::io::Read + std::os::fd::AsRawFd {}
+#[cfg(unix)]
+/// The raw source type for event identification (fd on Unix, handle on Windows).
+pub type RawSource = i32;
 
+#[cfg(unix)]
+/// Trait that composes the `std::io::Read` and `std::os::unix::io::AsRawFd` traits.
+pub trait ReadableFd: std::io::Read + std::os::fd::AsRawFd {
+    fn raw_source(&self) -> RawSource {
+        self.as_raw_fd()
+    }
+}
+
+#[cfg(unix)]
 impl ReadableFd for std::fs::File {}
+
+#[cfg(windows)]
+/// The raw source type for event identification (fd on Unix, handle on Windows).
+pub type RawSource = std::os::windows::raw::HANDLE;
+
+#[cfg(windows)]
+/// Trait that composes the `std::io::Read` trait for Windows.
+pub trait ReadableFd: std::io::Read {
+    fn raw_source(&self) -> RawSource;
+}
+
+#[cfg(windows)]
+impl ReadableFd for std::fs::File {
+    fn raw_source(&self) -> RawSource {
+        use std::os::windows::io::AsRawHandle;
+        self.as_raw_handle()
+    }
+}
 
 #[cfg(target_os = "linux")]
 #[derive(Clone)]

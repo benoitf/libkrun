@@ -8,7 +8,9 @@ extern "C" {
 #include <inttypes.h>
 #include <stddef.h>
 #include <stdbool.h>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 /**
  * Sets the log level for the library.

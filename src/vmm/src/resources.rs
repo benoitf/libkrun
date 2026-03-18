@@ -7,6 +7,7 @@
 use std::fs::File;
 #[cfg(feature = "tee")]
 use std::io::BufReader;
+#[cfg(unix)]
 use std::os::fd::RawFd;
 use std::path::PathBuf;
 
@@ -17,27 +18,28 @@ use serde::{Deserialize, Serialize};
 use crate::vmm_config::block::{BlockBuilder, BlockConfigError, BlockDeviceConfig};
 use crate::vmm_config::external_kernel::ExternalKernel;
 use crate::vmm_config::firmware::FirmwareConfig;
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 use crate::vmm_config::fs::*;
 #[cfg(feature = "tee")]
 use crate::vmm_config::kernel_bundle::{InitrdBundle, QbootBundle, QbootBundleError};
 use crate::vmm_config::kernel_bundle::{KernelBundle, KernelBundleError};
 use crate::vmm_config::kernel_cmdline::{KernelCmdlineConfig, KernelCmdlineConfigError};
 use crate::vmm_config::machine_config::{VmConfig, VmConfigError};
-#[cfg(feature = "net")]
+#[cfg(all(unix, feature = "net"))]
 use crate::vmm_config::net::{NetBuilder, NetworkInterfaceConfig, NetworkInterfaceError};
+#[cfg(unix)]
 use crate::vmm_config::vsock::*;
 use crate::vstate::VcpuConfig;
-#[cfg(feature = "gpu")]
+#[cfg(all(unix, feature = "gpu"))]
 use devices::virtio::display::DisplayInfo;
 #[cfg(feature = "tee")]
 use kbs_types::Tee;
-#[cfg(feature = "gpu")]
+#[cfg(all(unix, feature = "gpu"))]
 use krun_display::DisplayBackend;
 
 type Result<E> = std::result::Result<(), E>;
 
-// Re-export TsiFlags from devices crate
+#[cfg(unix)]
 pub use devices::virtio::TsiFlags;
 
 /// Errors encountered when configuring microVM resources.
@@ -56,6 +58,7 @@ pub enum Error {
     /// microVM vCpus or memory configuration error.
     VmConfig(VmConfigError),
     /// Vsock device configuration error.
+    #[cfg(unix)]
     VsockDevice(VsockConfigError),
 }
 
@@ -84,22 +87,26 @@ impl Default for TeeConfig {
     }
 }
 
+#[cfg(unix)]
 pub struct SerialConsoleConfig {
     pub input_fd: RawFd,
     pub output_fd: RawFd,
 }
 
+#[cfg(unix)]
 pub struct DefaultVirtioConsoleConfig {
     pub input_fd: RawFd,
     pub output_fd: RawFd,
     pub err_fd: RawFd,
 }
 
+#[cfg(unix)]
 pub enum VirtioConsoleConfigMode {
     Autoconfigure(DefaultVirtioConsoleConfig),
     Explicit(Vec<PortConfig>),
 }
 
+#[cfg(unix)]
 pub enum PortConfig {
     Tty {
         name: String,
@@ -113,6 +120,7 @@ pub enum PortConfig {
 }
 
 /// Configuration for the vsock device
+#[cfg(unix)]
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub enum VsockConfig {
     /// Default behavior - vsock created implicitly with heuristics-based TSI
@@ -145,15 +153,16 @@ pub struct VmResources {
     #[cfg(feature = "tee")]
     pub initrd_bundle: Option<InitrdBundle>,
     /// The fs device.
-    #[cfg(not(feature = "tee"))]
+    #[cfg(all(unix, not(feature = "tee")))]
     pub fs: Vec<FsDeviceConfig>,
     /// The vsock device.
+    #[cfg(unix)]
     pub vsock: VsockBuilder,
     /// The virtio-blk device.
     #[cfg(feature = "blk")]
     pub block: BlockBuilder,
     /// The network devices builder.
-    #[cfg(feature = "net")]
+    #[cfg(all(unix, feature = "net"))]
     pub net: NetBuilder,
     /// TEE configuration
     #[cfg(feature = "tee")]
@@ -161,16 +170,16 @@ pub struct VmResources {
     /// Flags for the virtio-gpu device.
     pub gpu_virgl_flags: Option<u32>,
     pub gpu_shm_size: Option<usize>,
-    #[cfg(feature = "gpu")]
+    #[cfg(all(unix, feature = "gpu"))]
     pub display_backend: Option<DisplayBackend<'static>>,
-    #[cfg(feature = "gpu")]
+    #[cfg(all(unix, feature = "gpu"))]
     pub displays: Vec<DisplayInfo>,
-    #[cfg(feature = "input")]
+    #[cfg(all(unix, feature = "input"))]
     pub input_backends: Vec<(
         krun_input::InputConfigBackend<'static>,
         krun_input::InputEventProviderBackend<'static>,
     )>,
-    #[cfg(feature = "snd")]
+    #[cfg(all(unix, feature = "snd"))]
     /// Enable the virtio-snd device.
     pub snd_device: bool,
     /// File to send console output.
@@ -186,8 +195,10 @@ pub struct VmResources {
     /// The console id to use for console= in the kernel cmdline
     pub kernel_console: Option<String>,
     /// Serial consoles to attach to the guest
+    #[cfg(unix)]
     pub serial_consoles: Vec<SerialConsoleConfig>,
     /// Virtio consoles to attach to the guest
+    #[cfg(unix)]
     pub virtio_consoles: Vec<VirtioConsoleConfigMode>,
 }
 
@@ -261,8 +272,10 @@ impl VmResources {
     }
 
     pub fn set_kernel_bundle(&mut self, kernel_bundle: KernelBundle) -> Result<KernelBundleError> {
-        // Safe because this call just returns the page size and doesn't have any side effects.
+        #[cfg(unix)]
         let page_size = unsafe { libc::sysconf(libc::_SC_PAGESIZE) as usize };
+        #[cfg(windows)]
+        let page_size: usize = 4096;
 
         if kernel_bundle.host_addr == 0 || (kernel_bundle.host_addr as usize) & (page_size - 1) != 0
         {
@@ -315,7 +328,7 @@ impl VmResources {
         Ok(())
     }
 
-    #[cfg(not(feature = "tee"))]
+    #[cfg(all(unix, not(feature = "tee")))]
     pub fn add_fs_device(&mut self, config: FsDeviceConfig) {
         self.fs.push(config)
     }
@@ -326,6 +339,7 @@ impl VmResources {
     }
 
     /// Sets a vsock device to be attached when the VM starts.
+    #[cfg(unix)]
     pub fn set_vsock_device(&mut self, config: VsockDeviceConfig) -> Result<VsockConfigError> {
         self.vsock.insert(config)
     }
@@ -338,7 +352,7 @@ impl VmResources {
         self.gpu_shm_size = Some(shm_size);
     }
 
-    #[cfg(feature = "snd")]
+    #[cfg(all(unix, feature = "snd"))]
     pub fn set_snd_device(&mut self, enabled: bool) {
         self.snd_device = enabled;
     }
@@ -348,7 +362,7 @@ impl VmResources {
     }
 
     /// Sets a network device to be attached when the VM starts.
-    #[cfg(feature = "net")]
+    #[cfg(all(unix, feature = "net"))]
     pub fn add_network_interface(
         &mut self,
         config: NetworkInterfaceConfig,
@@ -383,7 +397,7 @@ impl VmResources {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests {
     #[cfg(feature = "gpu")]
     use crate::resources::DisplayBackendConfig;

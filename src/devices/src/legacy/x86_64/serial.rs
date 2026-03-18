@@ -273,7 +273,7 @@ impl Subscriber for Serial {
         }
 
         if let Some(input) = self.input.as_mut() {
-            if input.as_raw_fd() == source {
+            if input.raw_source() == source {
                 let mut out = [0u8; 32];
                 match input.read(&mut out[..]) {
                     Ok(count) => {
@@ -292,7 +292,7 @@ impl Subscriber for Serial {
     /// If serial input is present, register the serial input FD as readable.
     fn interest_list(&self) -> Vec<EpollEvent> {
         match &self.input {
-            Some(input) => vec![EpollEvent::new(EventSet::IN, input.as_raw_fd() as u64)],
+            Some(input) => vec![EpollEvent::new(EventSet::IN, input.raw_source() as u64)],
             None => vec![],
         }
     }

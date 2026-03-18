@@ -15,7 +15,7 @@ pub mod kernel_cmdline;
 pub mod external_kernel;
 
 /// Wrapper for configuring the Fs devices attached to the microVM.
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 pub mod fs;
 
 /// Wrapper over the microVM general information attached to the microVM.
@@ -28,8 +28,9 @@ pub mod kernel_bundle;
 pub mod machine_config;
 
 /// Wrapper for configuring the vsock devices attached to the microVM.
+#[cfg(unix)]
 pub mod vsock;
 
 /// Wrapper for configuring the network devices attached to the microVM.
-#[cfg(feature = "net")]
+#[cfg(all(unix, feature = "net"))]
 pub mod net;

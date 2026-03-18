@@ -4,14 +4,17 @@
 
 use std::fs::File;
 use std::io::{Error, ErrorKind, Result};
+#[cfg(unix)]
 use std::os::unix::io::AsRawFd;
 
 #[cfg(feature = "blk")]
 use imago::io_buffers::{IoVector, IoVectorMut};
 use vm_memory::VolatileSlice;
 
+#[cfg(unix)]
 use libc::{c_int, c_void, read, readv, size_t, write, writev};
 
+#[cfg(unix)]
 use super::bindings::{off64_t, pread64, preadv64, pwrite64, pwritev64};
 #[cfg(feature = "blk")]
 use super::block::device::DiskProperties;
@@ -220,6 +223,7 @@ impl<T: FileReadWriteAtVolatile + ?Sized> FileReadWriteAtVolatile for &T {
     }
 }
 
+#[cfg(unix)]
 macro_rules! volatile_impl {
     ($ty:ty) => {
         impl FileReadWriteVolatile for $ty {
@@ -414,6 +418,7 @@ macro_rules! volatile_impl {
     };
 }
 
+#[cfg(unix)]
 volatile_impl!(File);
 
 #[cfg(feature = "blk")]

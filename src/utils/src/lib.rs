@@ -1,6 +1,7 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#[cfg(unix)]
 pub use vmm_sys_util::{errno, tempdir, tempfile, terminal};
 #[cfg(target_os = "linux")]
 pub use vmm_sys_util::{eventfd, ioctl};
@@ -16,6 +17,15 @@ pub mod macos;
 pub use macos::epoll;
 #[cfg(target_os = "macos")]
 pub use macos::eventfd;
+#[cfg(target_os = "windows")]
+pub mod windows;
+#[cfg(target_os = "windows")]
+pub use windows::epoll;
+#[cfg(target_os = "windows")]
+pub use windows::errno;
+#[cfg(target_os = "windows")]
+pub use windows::eventfd;
+#[cfg(unix)]
 pub mod pollable_channel;
 #[cfg(target_arch = "x86_64")]
 pub mod rand;
@@ -24,5 +34,6 @@ pub mod signal;
 pub mod sized_vec;
 pub mod sm;
 pub mod syscall;
+#[cfg(unix)]
 pub mod time;
 pub mod worker_message;

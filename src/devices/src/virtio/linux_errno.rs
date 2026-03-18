@@ -106,6 +106,7 @@ pub fn linux_errno_raw(errno: i32) -> i32 {
         libc::ENOMEM => LINUX_ENOMEM,
         libc::EACCES => LINUX_EACCES,
         libc::EFAULT => LINUX_EFAULT,
+        #[cfg(unix)]
         libc::ENOTBLK => LINUX_ENOTBLK,
         libc::EBUSY => LINUX_EBUSY,
         libc::EEXIST => LINUX_EEXIST,
@@ -134,7 +135,9 @@ pub fn linux_errno_raw(errno: i32) -> i32 {
         libc::EPROTOTYPE => LINUX_EPROTOTYPE,
         libc::ENOPROTOOPT => LINUX_ENOPROTOOPT,
         libc::EPROTONOSUPPORT => LINUX_EPROTONOSUPPORT,
+        #[cfg(unix)]
         libc::ESOCKTNOSUPPORT => LINUX_ESOCKTNOSUPPORT,
+        #[cfg(unix)]
         libc::EPFNOSUPPORT => LINUX_EPFNOSUPPORT,
         libc::EAFNOSUPPORT => LINUX_EAFNOSUPPORT,
         libc::EADDRINUSE => LINUX_EADDRINUSE,
@@ -147,18 +150,25 @@ pub fn linux_errno_raw(errno: i32) -> i32 {
         libc::ENOBUFS => LINUX_ENOBUFS,
         libc::EISCONN => LINUX_EISCONN,
         libc::ENOTCONN => LINUX_ENOTCONN,
+        #[cfg(unix)]
         libc::ESHUTDOWN => LINUX_ESHUTDOWN,
+        #[cfg(unix)]
         libc::ETOOMANYREFS => LINUX_ETOOMANYREFS,
         libc::ETIMEDOUT => LINUX_ETIMEDOUT,
         libc::ECONNREFUSED => LINUX_ECONNREFUSED,
         libc::ELOOP => LINUX_ELOOP,
         libc::ENAMETOOLONG => LINUX_ENAMETOOLONG,
+        #[cfg(unix)]
         libc::EHOSTDOWN => LINUX_EHOSTDOWN,
         libc::EHOSTUNREACH => LINUX_EHOSTUNREACH,
         libc::ENOTEMPTY => LINUX_ENOTEMPTY,
+        #[cfg(unix)]
         libc::EUSERS => LINUX_EUSERS,
+        #[cfg(unix)]
         libc::EDQUOT => LINUX_EDQUOT,
+        #[cfg(unix)]
         libc::ESTALE => LINUX_ESTALE,
+        #[cfg(unix)]
         libc::EREMOTE => LINUX_EREMOTE,
         libc::ENOLCK => LINUX_ENOLCK,
         libc::ENOSYS => LINUX_ENOSYS,
@@ -170,12 +180,19 @@ pub fn linux_errno_raw(errno: i32) -> i32 {
         #[cfg(target_os = "macos")]
         libc::ENOATTR => LINUX_ENODATA,
         libc::EBADMSG => LINUX_EBADMSG,
+        #[cfg(unix)]
         libc::EMULTIHOP => LINUX_EMULTIHOP,
+        #[cfg(unix)]
         libc::ENODATA => LINUX_ENODATA,
+        #[cfg(unix)]
         libc::ENOLINK => LINUX_ENOLINK,
+        #[cfg(unix)]
         libc::ENOSR => LINUX_ENOSR,
+        #[cfg(unix)]
         libc::ENOSTR => LINUX_ENOSTR,
+        #[cfg(unix)]
         libc::EPROTO => LINUX_EPROTO,
+        #[cfg(unix)]
         libc::ETIME => LINUX_ETIME,
         libc::EOPNOTSUPP => LINUX_EOPNOTSUPP,
         libc::ENOTRECOVERABLE => LINUX_ENOTRECOVERABLE,

@@ -2,7 +2,11 @@ use std::collections::BTreeMap;
 
 use arch::ArchMemoryInfo;
 use vm_memory::GuestAddress;
-use vmm_sys_util::align_upwards;
+
+/// Aligns `x` upward to a multiple of `alignment`. `alignment` must be a power of 2.
+fn align_up(x: usize, alignment: usize) -> usize {
+    (x + alignment - 1) & !(alignment - 1)
+}
 
 #[derive(Debug)]
 pub enum Error {
@@ -58,7 +62,7 @@ impl ShmManager {
     }
 
     fn create_region(&mut self, size: usize) -> Result<ShmRegion, Error> {
-        let size = align_upwards!(size, self.page_size);
+        let size = align_up(size, self.page_size);
 
         let region = ShmRegion {
             guest_addr: GuestAddress(self.next_guest_addr),

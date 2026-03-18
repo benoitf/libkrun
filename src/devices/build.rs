@@ -45,17 +45,20 @@ fn build_default_init() -> PathBuf {
 }
 
 fn main() {
-    let init_binary_path = std::env::var_os("KRUN_INIT_BINARY_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| {
-            let init_path = build_default_init();
-            // SAFETY: The build script is single threaded.
-            unsafe { std::env::set_var("KRUN_INIT_BINARY_PATH", &init_path) };
-            init_path
-        });
-    println!(
-        "cargo:rustc-env=KRUN_INIT_BINARY_PATH={}",
-        init_binary_path.display()
-    );
-    println!("cargo:rerun-if-env-changed=KRUN_INIT_BINARY_PATH");
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
+    if target_os != "windows" {
+        let init_binary_path = std::env::var_os("KRUN_INIT_BINARY_PATH")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| {
+                let init_path = build_default_init();
+                // SAFETY: The build script is single threaded.
+                unsafe { std::env::set_var("KRUN_INIT_BINARY_PATH", &init_path) };
+                init_path
+            });
+        println!(
+            "cargo:rustc-env=KRUN_INIT_BINARY_PATH={}",
+            init_binary_path.display()
+        );
+        println!("cargo:rerun-if-env-changed=KRUN_INIT_BINARY_PATH");
+    }
 }

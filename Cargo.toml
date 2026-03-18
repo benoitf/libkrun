@@ -3,9 +3,13 @@ members = ["src/libkrun", "src/krun_input"]
 exclude = ["examples/gtk_display"]
 resolver = "2"
 
+[patch.crates-io]
+vm-memory = { path = "patches/vm-memory" }
+
 [profile.dev]
 #panic = "abort"
 
 [profile.release]
 #panic = "abort"
 lto = true
+

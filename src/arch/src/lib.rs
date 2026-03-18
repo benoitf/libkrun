@@ -6,6 +6,13 @@
 
 use std::result;
 
+/// Aligns `x` upward to a multiple of `alignment`. `alignment` must be a power of 2.
+macro_rules! align_up {
+    ($x:expr, $alignment:expr) => {
+        (($x) + ($alignment) - 1) & !(($alignment) - 1)
+    };
+}
+
 #[derive(Default)]
 pub struct ArchMemoryInfo {
     #[cfg(target_arch = "x86_64")]

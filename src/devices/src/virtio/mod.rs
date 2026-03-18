@@ -10,52 +10,56 @@ use std;
 use std::any::Any;
 use std::io::Error as IOError;
 
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 pub mod balloon;
 #[allow(dead_code)]
 #[allow(non_camel_case_types)]
 pub mod bindings;
 #[cfg(feature = "blk")]
 pub mod block;
+#[cfg(unix)]
 pub mod console;
 pub mod descriptor_utils;
 pub mod device;
 pub mod file_traits;
-#[cfg(not(any(feature = "tee", feature = "aws-nitro")))]
+#[cfg(all(unix, not(any(feature = "tee", feature = "aws-nitro"))))]
 pub mod fs;
-#[cfg(feature = "gpu")]
+#[cfg(all(unix, feature = "gpu"))]
 pub mod gpu;
-#[cfg(feature = "input")]
+#[cfg(all(unix, feature = "input"))]
 pub mod input;
 pub mod linux_errno;
 mod mmio;
-#[cfg(feature = "net")]
+#[cfg(all(unix, feature = "net"))]
 pub mod net;
 mod queue;
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 pub mod rng;
-#[cfg(feature = "snd")]
+#[cfg(all(unix, feature = "snd"))]
 pub mod snd;
+#[cfg(unix)]
 pub mod vsock;
 
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 pub use self::balloon::*;
 #[cfg(feature = "blk")]
 pub use self::block::{Block, CacheType};
+#[cfg(unix)]
 pub use self::console::*;
 pub use self::device::*;
-#[cfg(not(any(feature = "tee", feature = "aws-nitro")))]
+#[cfg(all(unix, not(any(feature = "tee", feature = "aws-nitro"))))]
 pub use self::fs::*;
-#[cfg(feature = "gpu")]
+#[cfg(all(unix, feature = "gpu"))]
 pub use self::gpu::*;
 pub use self::mmio::*;
-#[cfg(feature = "net")]
+#[cfg(all(unix, feature = "net"))]
 pub use self::net::Net;
 pub use self::queue::{Descriptor, DescriptorChain, Queue};
-#[cfg(not(feature = "tee"))]
+#[cfg(all(unix, not(feature = "tee")))]
 pub use self::rng::*;
-#[cfg(feature = "snd")]
+#[cfg(all(unix, feature = "snd"))]
 pub use self::snd::Snd;
+#[cfg(unix)]
 pub use self::vsock::*;
 
 /// When the driver initializes the device, it lets the device know about the
